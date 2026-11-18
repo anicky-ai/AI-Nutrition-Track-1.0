@@ -116,9 +116,8 @@ PENTING: Kembalikan respon dalam format JSON sesuai skema yang ditentukan."""
     candidate_models = []
     for m in [
         model_name,
-        "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        "gemini-3-flash-preview",
+        "gemini-2.5-flash",
     ]:
         if m and m not in candidate_models:
             candidate_models.append(m)

@@ -19,10 +19,10 @@ load_dotenv()
 # ==========================================
 # KONSTANTA MODEL VALID GOOGLE AI STUDIO
 # ==========================================
-DEFAULT_MODEL = "gemini-3.8-flash"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 AVAILABLE_MODELS = [
-    "gemini-3.8-flash",
+    "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
 ]
 
@@ -123,12 +123,12 @@ PENTING: Kembalikan respon dalam format JSON sesuai skema yang ditentukan."""
     candidate_models = []
     for m in [
         model_name,
-        "gemini-3.8-flash",
+        "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
     ]:
         if m and m not in candidate_models:
             candidate_models.append(m)
-
+            
     response = None
     last_error = None
 

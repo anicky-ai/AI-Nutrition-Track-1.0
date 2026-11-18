@@ -128,7 +128,7 @@ PENTING: Kembalikan respon dalam format JSON sesuai skema yang ditentukan."""
     ]:
         if m and m not in candidate_models:
             candidate_models.append(m)
-            
+
     response = None
     last_error = None
 

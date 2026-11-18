@@ -1,7 +1,7 @@
 """
 AI Food Scanner Module
 Menggunakan Google Gemini melalui SDK google-genai dengan Structured Output (Pydantic).
-Dilengkapi optimasi gambar (Pillow), auto-retry, fallback model, dan portion scaling.
+Dilengkapi optimasi gambar (Pillow), referensi gizi lokal, auto-retry, fallback model, dan portion scaling.
 """
 
 import os
@@ -12,18 +12,18 @@ from typing import Optional, Union, Any
 from PIL import Image
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+import database as db
 
 load_dotenv()
 
 # ==========================================
 # KONSTANTA MODEL VALID GOOGLE AI STUDIO
 # ==========================================
-DEFAULT_MODEL = "gemini-2.5-flash-preview"
+DEFAULT_MODEL = "gemini-3.8-flash"
 
 AVAILABLE_MODELS = [
-    "gemini-2.5-flash",
+    "gemini-3.8-flash",
     "gemini-2.5-flash-lite",
-    "gemini-3-flash-preview",
 ]
 
 
@@ -93,10 +93,18 @@ def analyze_food_image(
 
     processed_image = optimize_image(image_file)
 
+    # Ambil konteks standar gizi dari tabel food_reference SQLite (jika tersedia)
+    try:
+        ref_context = db.get_reference_prompt_context()
+    except Exception:
+        ref_context = ""
+
     prompt = f"""Peran Anda adalah Ahli Gizi & Nutrisi Profesional AI.
 Analisis foto makanan yang diberikan secara akurat dan objektif:
 
-1. Kenali nama makanan/hidangan dengan tepat (mendukung makanan khas Indonesia: Nasi Padang, Ayam Geprek, Rendang, Gado-gado, Bakso, Soto, Tempe Goreng, dll., maupun makanan internasional).
+{ref_context}
+
+1. Kenali nama makanan/hidangan dengan tepat (mendukung makanan khas Indonesia: Nasi Padang, Ayam Geprek, Rendang, Gado-gado, Bakso, Soto, Tempe Goreng, dll., maupun makanan internasional) serta gunakan acuan standar gizi di atas sebagai patokan proporsi gramasi.
 2. Perkirakan total berat porsi dalam piring/wadah (gram) secara realistis.
 3. Hitung estimasi kandungan gizi untuk porsi tersebut:
   - Kalori (kkal), Protein (gram), Karbohidrat (gram), Lemak (gram), dan Serat pangan (gram).
@@ -109,15 +117,14 @@ Analisis foto makanan yang diberikan secara akurat dan objektif:
 
 PENTING: Kembalikan respon dalam format JSON sesuai skema yang ditentukan."""
 
-
     client = genai.Client(api_key=effective_api_key)
 
-    # Susun daftar model berurutan: pilihan user + cadangan yang stabil
+    # Susun daftar model berurutan: pilihan user + cadangan aktif
     candidate_models = []
     for m in [
         model_name,
+        "gemini-3.8-flash",
         "gemini-2.5-flash-lite",
-        "gemini-2.5-flash",
     ]:
         if m and m not in candidate_models:
             candidate_models.append(m)
@@ -204,3 +211,4 @@ def scale_nutrition(original: FoodNutrition, new_weight_gram: float) -> FoodNutr
         vitamin_mineral=original.vitamin_mineral,
         catatan_diet=original.catatan_diet,
     )
+    

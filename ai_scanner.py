@@ -211,4 +211,3 @@ def scale_nutrition(original: FoodNutrition, new_weight_gram: float) -> FoodNutr
         vitamin_mineral=original.vitamin_mineral,
         catatan_diet=original.catatan_diet,
     )
-    
